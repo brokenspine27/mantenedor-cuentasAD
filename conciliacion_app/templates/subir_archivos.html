@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Archivos - Sistema Conciliación AD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+        
+        .logout-form {
+            display: inline;
+        }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* Main content */
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        /* Form */
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .file-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #ddd;
+            border-radius: 5px;
+            background: #fafafa;
+            cursor: pointer;
+            transition: border 0.3s;
+        }
+        
+        .file-input:hover {
+            border-color: #667eea;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 30px;
+            margin-top: 10px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .radio-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Info boxes */
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .info-box h4 {
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .info-box ul {
+            padding-left: 20px;
+            color: #666;
+        }
+        
+        .info-box li {
+            margin-bottom: 5px;
+        }
+        
+        /* File requirements */
+        .requirements {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .requirement-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .requirement-card h4 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #888;
+            font-size: 12px;
+        }
+        
+        /* Back button */
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .container {
+                padding: 0 15px;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .requirements {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <h1>Subir Archivos</h1>
+            <div class="user-info">
+                <span>{{ user.username }}</span>
+                <div class="nav-links">
+                    <a href="{% url 'dashboard' %}">← Dashboard</a>
+                    <form action="{% url 'logout' %}" method="post" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">Cerrar Sesión</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="container">
+        <a href="{% url 'dashboard' %}" class="back-link">Volver al Dashboard</a>
+        
+        <div class="card">
+            <h2>Subir Archivos para Conciliación</h2>
+            
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'success' %}
+                        <div class="info-box" style="border-color: #28a745;">
+                            {{ message }}
+                        </div>
+                    {% else %}
+                        <div class="info-box" style="border-color: #dc3545;">
+                            {{ message }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            
+            <!-- Info -->
+            <div class="info-box">
+                <h4>Importante</h4>
+                <p>Para realizar la conciliación, necesitas subir DOS archivos:</p>
+                <br>
+                <ol>
+                    <li><strong>Nómina RRHH:</strong> Archivo Excel con lista de empleados</li>
+                    <li><strong>Active Directory:</strong> Archivo TXT/CSV con cuentas de AD</li>
+                </ol>
+            </div>
+            
+            <!-- Form -->
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="tipo_archivo">Tipo de Archivo</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="tipo_archivo" value="NOMINA" required checked>
+                            <span>Nómina RRHH (Excel)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="tipo_archivo" value="AD">
+                            <span>Active Directory (TXT/CSV)</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="archivo">Seleccionar Archivo</label>
+                    <input type="file" 
+                           id="archivo" 
+                           name="archivo" 
+                           class="file-input" 
+                           required
+                           accept=".xlsx,.xls,.txt,.csv">
+                    <small style="color: #666; display: block; margin-top: 5px;">
+                        Arrastra el archivo o haz clic para seleccionar
+                    </small>
+                </div>
+                
+                <button type="submit" class="btn-submit">
+                    Subir y Procesar Archivo
+                </button>
+            </form>
+            
+            <!-- Requirements -->
+            <div class="requirements">
+                <div class="requirement-card">
+                    <h4>Nómina RRHH (Excel)</h4>
+                    <ul>
+                        <li>Formatos aceptados: .xlsx, .xls</li>
+                        <li>Debe contener columna con RUTs</li>
+                        <li>Recomendado: columna de estado (Activo/Inactivo)</li>
+                        <li>El sistema detectará automáticamente las columnas</li>
+                    </ul>
+                </div>
+                
+                <div class="requirement-card">
+                    <h4>Active Directory (TXT/CSV)</h4>
+                    <ul>
+                        <li>Formatos aceptados: .txt, .csv</li>
+                        <li>Debe contener nombres de usuario y RUTs</li>
+                        <li>Separado por comas, punto y coma o tabulaciones</li>
+                        <li>Exportado desde herramienta de administración AD</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>Sistema de Conciliación AD • Subir Archivos • v1.0</p>
+        </div>
+    </div>
+
+    <script>
+        // Mostrar nombre del archivo seleccionado
+        const fileInput = document.getElementById('archivo');
+        fileInput.addEventListener('change', function(e) {
+            const fileName = this.files[0]?.name || 'Ningún archivo seleccionado';
+            this.nextElementSibling.textContent = `Archivo seleccionado: ${fileName}`;
+        });
+        
+        // Cambiar accept según tipo de archivo
+        const tipoRadios = document.querySelectorAll('input[name="tipo_archivo"]');
+        tipoRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'NOMINA') {
+                    fileInput.accept = '.xlsx,.xls';
+                    fileInput.nextElementSibling.innerHTML = 
+                        'Formatos aceptados: .xlsx, .xls <br>Arrastra o haz clic para seleccionar';
+                } else {
+                    fileInput.accept = '.txt,.csv';
+                    fileInput.nextElementSibling.innerHTML = 
+                        'Formatos aceptados: .txt, .csv <br>Arrastra o haz clic para seleccionar';
+                }
+                fileInput.value = ''; // Limpiar selección anterior
+            });
+        });
+        
+        // Prevenir envío si no hay archivo
+        document.querySelector('form').addEventListener('submit', function(e) {
+            if (!fileInput.files.length) {
+                e.preventDefault();
+                alert('Por favor selecciona un archivo');
+                fileInput.focus();
+            }
+        });
+    </script>
+</body>
+</html>

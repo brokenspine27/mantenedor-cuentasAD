@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema Conciliación AD</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .menu { margin: 20px 0; }
+        .menu a { display: block; padding: 15px; margin: 10px 0; background: #007bff; color: white; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Sistema AD</h1>
+    <p>Hola {{ user.username }}</p>
+    <p>Bienvenido/a al sistema de conciliación de cuentas</p>
+
+<!---Logout-->
+    <form action="{% url 'logout' %}" method="post" class="logout-form">
+        {% csrf_token %}
+    <button type="submit" class="logout-btn">Cerrar Sesión</button>
+    </form>
+
+    <div class="menu">
+        <a href="{% url 'subir_archivos' %}">Subir archivos</a>
+        <a href="{% url 'ejecutar_conciliacion' %}">Ejecutar conciliación</a>
+        <a href="{% url 'historial_procesos' %}">Ver historial</a>
+    </div>
+</body>
+</html>
