@@ -16,16 +16,14 @@ urlpatterns = [
     # Dashboard
     path('dashboard/', views.dashboard, name='dashboard'),
     
-    # Archivos
+    # Proceso de carga y procesamiento de archivos
     path('subir/', views.subir_archivos, name='subir_archivos'),
-    path('procesar/<uuid:archivo_id>/', views.procesar_archivo, name='procesar_archivo'),
     
-    # Conciliación
-    path('conciliar/', views.ejecutar_conciliacion, name='ejecutar_conciliacion'),
+    # resultados
     path('resultados/<uuid:proceso_id>/', views.ver_resultados, name='ver_resultados'),
     path('marcar-resuelto/<uuid:conciliacion_id>/', views.marcar_resuelto, name='marcar_resuelto'),
     
-    # Scripts
+    # Generar script PowerShell
     path('generar-script/<uuid:proceso_id>/', views.generar_script_powershell, name='generar_script'),
     
     # Historial
