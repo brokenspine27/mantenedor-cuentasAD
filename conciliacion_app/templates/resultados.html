@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados Conciliación</title>
+    <style>
+        /* Css */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; color: #333; }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 { font-size: 24px; }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        
+        .logout-form { display: inline; }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        /* Estadísticas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border-top: 4px solid;
+        }
+        
+        .stat-card h3 {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card.fantasma { border-color: #dc3545; }
+        .stat-card.inactivo { border-color: #ffc107; }
+        .stat-card.ok { border-color: #28a745; }
+        
+        /* Filtros */
+        .filters {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        /* Tabla */
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 30px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-alta { background: #dc3545; color: white; }
+        .badge-media { background: #ffc107; color: #212529; }
+        .badge-baja { background: #6c757d; color: white; }
+        .badge-ninguna { background: #28a745; color: white; }
+        
+        /* Botones de acción */
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            display: inline-block;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #888;
+            font-size: 12px;
+        }
+        
+        /* Estado resuelto */
+        .resuelto {
+            opacity: 0.6;
+            background: #f8f9fa;
+        }
+        
+        .resuelto td {
+            color: #6c757d;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            th, td {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="header-content">
+            <h1>Resultados de la Conciliación</h1>
+            <div class="user-info">
+                <span>Usuario: {{ user.username }}</span>
+                <div class="nav-links">
+                    <a href="{% url 'dashboard' %}">Dashboard</a>
+                    <a href="{% url 'subir_archivos' %}">Subir Archivos</a>
+                </div>
+                <form method="POST" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">Cerrar Sesión</button>
+                </form>
+            </div>
+        </div>
+    
+    </div>
+
+    <div class ="container">
+        <div class="card">
+            <h2> Proceso #{{ proceso.id|truncatechars:10 }}</h2>
+            <div style="color: #666; margin-bottom: 20px;">
+                <strong>Fecha de Conciliación:</strong> {{ proceso.fecha_conciliacion }}
+            <br>
+                <strong>Archivos Procesados:</strong> {{ proceso.archivo1_nombre }} y {{ proceso.archivo2_nombre }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+        <div class="stats-grid">
+            <div class="stat-card fantasma">
+                <h3>{{ proceso.fantasmas_totales }}</h3>
+                <p>Fantasma Total</p>
+                <small>No existe en RRHH</small>
+            </div>
+            
+            <div class="stat-card inactivo">
+                <h3>{{ proceso.inactivos_con_cuenta }}</h3>
+                <p>Inactivo con Cuenta</p>
+                <small>INACTIVO en RRHH con cuenta AD</small>
+            </div>
+            
+            <div class="stat-card ok">
+                <h3>{{ proceso.ok_activos }}</h3>
+                <p>Situación OK</p>
+                <small>ACTIVO con cuenta o INACTIVO sin cuenta</small>
+            </div>
+            
+            <div class="stat-card">
+                <h3>{{ proceso.total_empleados }}</h3>
+                <p>Total Empleados</p>
+                <small>En nómina RRHH</small>
+            </div>
+        </div>
+        
+        <!-- Filtros -->
+        <div class="filters">
+            <div class="filter-group">
+                <strong>Filtrar por:</strong>
+            </div>
+            
+            <div class="filter-group">
+                <input type="checkbox" id="filterFantasma" checked onchange="filterTable()">
+                <label for="filterFantasma">Fantasma Total ({{ proceso.fantasmas_totales }})</label>
+            </div>
+            
+            <div class="filter-group">
+                <input type="checkbox" id="filterInactivo" checked onchange="filterTable()">
+                <label for="filterInactivo">Inactivo con Cuenta ({{ proceso.inactivos_con_cuenta }})</label>
+            </div>
+            
+            <div class="filter-group">
+                <input type="checkbox" id="filterOk" onchange="filterTable()">
+                <label for="filterOk">OK ({{ proceso.ok_activos }})</label>
+            </div>
+            
+            <div class="filter-group">
+                <input type="checkbox" id="filterResueltos" onchange="filterTable()">
+                <label for="filterResueltos">Mostrar resueltos</label>
+            </div>
+        </div>
+        
+        <!-- Tabla de resultados -->
+        <div class="card">
+            <h2>Resultados Detallados ({{ conciliaciones.count }} registros)</h2>
+            
+            {% if conciliaciones %}
+            <div class="table-container">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>RUT</th>
+                            <th>Categoría</th>
+                            <th>Prioridad</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for conc in conciliaciones %}
+                        <tr class="{% if conc.resuelto %}resuelto{% endif %}" 
+                            data-categoria="{{ conc.categoria }}"
+                            data-resuelto="{{ conc.resuelto|yesno:'true,false' }}">
+                            <td>
+                                <strong>{{ conc.rut }}</strong><br>
+                                {% if conc.empleado_nomina %}
+                                <small>{{ conc.empleado_nomina.nombre }}</small>
+                                {% endif %}
+                            </td>
+                            
+                            <td>
+                                {% if conc.categoria == 'FANTASMA_TOTAL' %}
+                                    Fantasma Total
+                                {% elif conc.categoria == 'INACTIVO_CON_CUENTA' %}
+                                    Inactivo con Cuenta
+                                {% else %}
+                                    {{ conc.get_categoria_display }}
+                                {% endif %}
+                            </td>
+                            
+                            <td>
+                                {% if conc.prioridad == 'ALTA' %}
+                                    <span class="badge badge-alta">Alta</span>
+                                {% elif conc.prioridad == 'MEDIA' %}
+                                    <span class="badge badge-media">Media</span>
+                                {% elif conc.prioridad == 'BAJA' %}
+                                    <span class="badge badge-baja">Baja</span>
+                                {% else %}
+                                    <span class="badge badge-ninguna">Ninguna</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td>{{ conc.descripcion }}</td>
+                            
+                            <td>
+                                {% if conc.resuelto %}
+                                    <span style="color: #28a745;">✓ Resuelto</span><br>
+                                    <small>{{ conc.fecha_resolucion|date:"d/m/Y" }}</small>
+                                {% else %}
+                                    <span style="color: #dc3545;">● Pendiente</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td>
+                                {% if not conc.resuelto %}
+                                <form method="post" action="{% url 'marcar_resuelto' conc.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success" title="Marcar como resuelto">
+                                        ✓ Marcar como Resuelto
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 40px; color: #666;">
+                <p>No se encontraron discrepancias. ¡Todo está en orden!</p>
+            </div>
+            {% endif %}
+            
+            <!-- Botones de acción -->
+            <div style="margin-top: 30px; display: flex; gap: 15px; flex-wrap: wrap;">
+                {% if proceso.fantasmas_totales > 0 or proceso.inactivos_con_cuenta > 0 %}
+                <a href="{% url 'generar_script' proceso.id %}" class="btn-primary btn" style="text-decoration: none;">
+                    Generar Script PowerShell
+                </a>
+                {% endif %}
+                
+                <a href="{% url 'subir_archivos' %}" class="btn-secondary">
+                    Nueva Conciliación
+                </a>
+                
+                <a href="{% url 'dashboard' %}" class="btn-secondary">
+                    ← Volver al Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Sistema de Conciliación AD • Resultados • Proceso #{{ proceso.id|truncatechars:8 }}</p>
+        </div>
+    </div>
+
+    <script>
+        // Filtrar tabla
+        function filterTable() {
+            const showFantasma = document.getElementById('filterFantasma').checked;
+            const showInactivo = document.getElementById('filterInactivo').checked;
+            const showOk = document.getElementById('filterOk').checked;
+            const showResueltos = document.getElementById('filterResueltos').checked;
+            
+            const rows = document.querySelectorAll('#resultsTable tbody tr');
+            
+            rows.forEach(row => {
+                const categoria = row.getAttribute('data-categoria');
+                const resuelto = row.getAttribute('data-resuelto') === 'true';
+                
+                let showRow = false;
+                
+                // Filtrar por categoría
+                if (categoria === 'FANTASMA_TOTAL' && showFantasma) showRow = true;
+                if (categoria === 'INACTIVO_CON_CUENTA' && showInactivo) showRow = true;
+                if (categoria !== 'FANTASMA_TOTAL' && categoria !== 'INACTIVO_CON_CUENTA' && showOk) showRow = true;
+                
+                // Filtrar por estado resuelto
+                if (resuelto && !showResueltos) showRow = false;
+                
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+        
+        // Inicializar filtros
+        document.addEventListener('DOMContentLoaded', filterTable);
+        
+        // Confirmar marcar como resuelto
+        document.querySelectorAll('form[action*="marcar-resuelto"]').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                if (!confirm('¿Marcar esta conciliación como resuelta?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
