@@ -1,5 +1,6 @@
 from django.db import models
 
+#los modelos para la aplicacion muestran la estructura de datos; son las tablas que se crean en la base de datos
 # Create your models here.
 from django.db import models
 from django.contrib.auth.models import User
@@ -7,10 +8,13 @@ from django.utils import timezone
 import uuid
 import os
 
+
+#esta es la función para guardar los archivos cargados
 def archivo_upload_path(instance, filename):
     #guarda archivos por fecha de carga
     fecha = timezone.now().strftime('%Y/%m/%d')
     return f'archivos/{fecha}/{filename}'
+
 
 class ArchivoCargado(models.Model):
     #registro de archivos cargados al sistema
