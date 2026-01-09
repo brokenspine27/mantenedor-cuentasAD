@@ -184,7 +184,7 @@
         <div class="header-content">
             <h1>Subir Archivos y Conciliar</h1>
             <div class="user-info">
-                <span>👤 {{ user.username }}</span>
+                <span>{{ user.username }}</span>
                 <div class="nav-links">
                     <a href="{% url 'dashboard' %}">← Dashboard</a>
                     <form action="{% url 'logout' %}" method="post" class="logout-form">
