@@ -28,4 +28,7 @@ urlpatterns = [
     
     # Historial
     path('historial/', views.historial_procesos, name='historial_procesos'),
+
+    # Ruta de prueba para carga de archivos
+    path('prueba/', views.prueba_upload, name='prueba_upload'),
 ]

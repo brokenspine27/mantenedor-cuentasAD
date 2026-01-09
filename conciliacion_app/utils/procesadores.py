@@ -62,53 +62,92 @@ class ProcesadorExcelNomina:
     def __init__(self):
         self.normalizador = NormalizadorRUT()
     
+    
+    # conciliacion_app/utils/procesadores.py - MODIFICA el método procesar
+
     def procesar(self, ruta_archivo: str) -> List[Dict]:
         """
         Procesa archivo Excel y retorna lista de empleados normalizados
+        MANEJANDO DUPLICADOS
         """
         try:
-            # Leer Excel
-            df = pd.read_excel(ruta_archivo)
-            
-            # Detectar columna de RUT
+        # Leer Excel
+            df = pd.read_excel(ruta_archivo, engine='openpyxl')
+        
+        # Detectar columna de RUT
             columna_rut = self._detectar_columna_rut(df)
             if not columna_rut:
                 raise ValueError("No se pudo detectar columna de RUT en el archivo")
-            
-            # Normalizar RUTs
+        
+        # Normalizar RUTs
             df['rut_normalizado'] = df[columna_rut].apply(
                 lambda x: self.normalizador.extraer_rut_desde_texto(x)
             )
-            
-            # Detectar columna de estado
+        
+        # Detectar columna de estado
             columna_estado = self._detectar_columna_estado(df)
-            
-            # Procesar cada empleado
-            empleados = []
-            rut_procesados = set()
-            
+        
+        # AGRUPAR POR RUT PARA MANEJAR DUPLICADOS
+            empleados_dict = {}
+        
             for _, row in df.iterrows():
                 rut = row['rut_normalizado']
-                if not rut or rut in rut_procesados:
+                if not rut:
                     continue
-                
-                # Determinar estado
+            
+            # Si es primera vez que vemos este RUT
+                if rut not in empleados_dict:
+                    empleados_dict[rut] = {
+                        'rut_normalizado': rut,
+                        'nombre': self._obtener_nombre(row),
+                        'departamento': self._obtener_valor(row, 'departamento', 'dpto', 'depto'),
+                        'cargo': self._obtener_valor(row, 'cargo', 'puesto', 'position'),
+                        'estados': [],  # Lista de todos los estados encontrados
+                        'registros_originales': 0,
+                        'tiene_conflicto': False,
+                    }
+            
+            # Agregar estado de este registro
                 estado = self._determinar_estado_empleado(row, columna_estado)
-                
+                empleados_dict[rut]['estados'].append(estado)
+                empleados_dict[rut]['registros_originales'] += 1
+        
+        # DETERMINAR ESTADO FINAL PARA CADA RUT
+            empleados = []
+            for rut, datos in empleados_dict.items():
+                estados = datos['estados']
+            
+            # Regla: Si hay AL MENOS UN "ACTIVO", el empleado está ACTIVO
+                if 'ACTIVO' in estados:
+                    estado_final = 'ACTIVO'
+                    tiene_conflicto = len(set(estados)) > 1  # Conflicto si hay mezcla
+                else:
+                # Si todos son INACTIVO
+                    estado_final = 'INACTIVO'
+                    tiene_conflicto = False
+            
                 empleado = {
                     'rut_normalizado': rut,
-                    'nombre': self._obtener_nombre(row),
-                    'departamento': self._obtener_valor(row, 'departamento', 'dpto', 'depto'),
-                    'cargo': self._obtener_valor(row, 'cargo', 'puesto', 'position'),
-                    'estado_final': estado,
-                    'tiene_conflicto': False,  # Se determinará después
+                    'nombre': datos['nombre'],
+                    'departamento': datos['departamento'],
+                    'cargo': datos['cargo'],
+                    'estado_final': estado_final,
+                    'tiene_conflicto': tiene_conflicto,
+                    'registros_originales': datos['registros_originales'],
+                    'estados_encontrados': estados,  # Para debug
                 }
-                
+            
                 empleados.append(empleado)
-                rut_procesados.add(rut)
-            
+        
+            print(f"✓ Procesados {len(empleados)} empleados únicos (de {len(df)} registros)")
+        
+        # DEBUG: Mostrar duplicados
+            for emp in empleados:
+                if emp['registros_originales'] > 1:
+                    print(f"  ⚠️  {emp['rut_normalizado']}: {emp['registros_originales']} registros -> Estado: {emp['estado_final']}")
+        
             return empleados
-            
+        
         except Exception as e:
             raise Exception(f"Error procesando Excel: {str(e)}")
     
@@ -326,26 +365,58 @@ class ProcesadorTXTAD:
         return None
 
 
+#REVISION DESDE ACÁ
+
+# conciliacion_app/utils/procesadores.py - REVISA la clase Conciliador
+
 class Conciliador:
     """Realiza la conciliación entre nómina y AD"""
     
     def conciliar(self, empleados: List[Dict], cuentas_ad: List[Dict]) -> List[Dict]:
         """
         Concilia empleados de nómina con cuentas de AD
+        VERSIÓN CORREGIDA
         """
+        # DEBUG: Mostrar lo que recibimos
+        print(f"=== DEBUG CONCILIADOR ===")
+        print(f"Empleados recibidos: {len(empleados)}")
+        print(f"Cuentas AD recibidas: {len(cuentas_ad)}")
+        
+        # Mostrar primeros 5 de cada uno para verificar
+        print("Primeros 5 empleados:")
+        for e in empleados[:5]:
+            print(f"  {e.get('rut', 'NO_RUT')} - {e.get('estado_final', 'NO_ESTADO')}")
+        
+        print("Primeras 5 cuentas AD:")
+        for c in cuentas_ad[:5]:
+            print(f"  {c.get('rut', 'NO_RUT')} - {c.get('estado_cuenta', 'NO_ESTADO')}")
+        
         # Crear diccionarios por RUT para búsqueda rápida
-        empleados_por_rut = {e['rut']: e for e in empleados}
-        cuentas_por_rut = {c['rut']: c for c in cuentas_ad}
+        empleados_por_rut = {}
+        for e in empleados:
+            rut = e.get('rut')
+            if rut:
+                empleados_por_rut[rut] = e
+        
+        cuentas_por_rut = {}
+        for c in cuentas_ad:
+            rut = c.get('rut')
+            if rut:
+                cuentas_por_rut[rut] = c
+        
+        print(f"Empleados únicos por RUT: {len(empleados_por_rut)}")
+        print(f"Cuentas AD únicas por RUT: {len(cuentas_por_rut)}")
         
         resultados = []
         
-        # 1. Revisar cada cuenta AD
+        # 1. PRIMERO: Revisar TODAS las cuentas AD (esto es lo importante)
+        print("\n=== REVISANDO CUENTAS AD ===")
         for rut, cuenta in cuentas_por_rut.items():
             if rut in empleados_por_rut:
                 empleado = empleados_por_rut[rut]
                 
                 # Empleado existe en nómina
-                if empleado['estado_final'] == 'INACTIVO':
+                if empleado.get('estado_final') == 'INACTIVO':
                     # CASO 2: INACTIVO CON CUENTA
                     resultado = {
                         'rut': rut,
@@ -356,6 +427,7 @@ class Conciliador:
                         'accion_recomendada': 'BLOQUEAR_CUENTA',
                         'descripcion': f"Empleado figura como INACTIVO en RRHH pero tiene cuenta AD activa",
                     }
+                    print(f"  ⚠️  {rut}: INACTIVO con cuenta AD")
                 else:
                     # CASO: ACTIVO CON CUENTA (TODO OK)
                     resultado = {
@@ -367,8 +439,9 @@ class Conciliador:
                         'accion_recomendada': 'MANTENER',
                         'descripcion': f"Empleado ACTIVO con cuenta AD - Situación normal",
                     }
+                    print(f"  ✓ {rut}: ACTIVO con cuenta (OK)")
             else:
-                # CASO 1: FANTASMA TOTAL (no existe en nómina)
+                # CASO 1: FANTASMA TOTAL (no existe en nómina) - ¡ESTO ES LO QUE BUSCAMOS!
                 resultado = {
                     'rut': rut,
                     'existe_en_nomina': False,
@@ -376,25 +449,28 @@ class Conciliador:
                     'categoria': 'FANTASMA_TOTAL',
                     'prioridad': 'ALTA',
                     'accion_recomendada': 'ELIMINAR_CUENTA',
-                    'descripcion': f"Cuenta AD activa pero no existe en nómina RRHH",
+                    'descripcion': f"Cuenta AD activa pero NO existe en nómina RRHH",
                 }
+                print(f"  🔴 {rut}: FANTASMA TOTAL (no en RRHH)")
             
             resultados.append(resultado)
         
-        # 2. Revisar empleados que no tienen cuenta AD (pero no es nuestro foco principal)
+        # 2. Revisar empleados que no tienen cuenta AD (opcional para completitud)
+        print("\n=== REVISANDO EMPLEADOS SIN CUENTA AD ===")
         for rut, empleado in empleados_por_rut.items():
             if rut not in cuentas_por_rut:
-                if empleado['estado_final'] == 'ACTIVO':
+                if empleado.get('estado_final') == 'ACTIVO':
                     # Empleado activo sin cuenta (no es problema para nuestra detección)
                     resultado = {
                         'rut': rut,
                         'existe_en_nomina': True,
                         'tiene_cuenta_ad': False,
-                        'categoria': 'OK_ACTIVO',
+                        'categoria': 'OK_ACTIVO',  # O podríamos crear 'ACTIVO_SIN_CUENTA'
                         'prioridad': 'NINGUNA',
                         'accion_recomendada': 'MANTENER',
                         'descripcion': f"Empleado ACTIVO sin cuenta AD",
                     }
+                    print(f"  ⓘ {rut}: ACTIVO sin cuenta AD")
                 else:
                     # Empleado inactivo sin cuenta (situación correcta)
                     resultado = {
@@ -406,7 +482,15 @@ class Conciliador:
                         'accion_recomendada': 'MANTENER',
                         'descripcion': f"Empleado INACTIVO sin cuenta AD - Situación correcta",
                     }
+                    print(f"  ✓ {rut}: INACTIVO sin cuenta (OK)")
                 
                 resultados.append(resultado)
+        
+        print(f"\n=== RESULTADOS FINALES ===")
+        print(f"Total resultados: {len(resultados)}")
+        fantasmas = sum(1 for r in resultados if r['categoria'] == 'FANTASMA_TOTAL')
+        inactivos_con_cuenta = sum(1 for r in resultados if r['categoria'] == 'INACTIVO_CON_CUENTA')
+        print(f"Fantasmas totales: {fantasmas}")
+        print(f"Inactivos con cuenta: {inactivos_con_cuenta}")
         
         return resultados

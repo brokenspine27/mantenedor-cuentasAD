@@ -223,7 +223,7 @@
                         <h3>Nómina RRHH</h3>
                         <p>Archivo Excel (.xlsx, .xls)</p>
                         <input type="file" id="nominaFile" class="file-input" accept=".xlsx,.xls" 
-                               name="nomina_file" onchange="handleFileSelect('nomina', this)">
+                               name="nomina_file" onchange="handleFileSelect('nomina', this)" required>
                         <div id="nominaName" style="margin-top: 10px; font-weight: 500;"></div>
                         <div class="status-indicator">
                             <div id="nominaStatus" class="status-dot"></div>
@@ -237,7 +237,7 @@
                         <h3>Active Directory</h3>
                         <p>Archivo TXT o CSV</p>
                         <input type="file" id="adFile" class="file-input" accept=".txt,.csv"
-                               name="ad_file" onchange="handleFileSelect('ad', this)">
+                               name="ad_file" onchange="handleFileSelect('ad', this)" required>
                         <div id="adName" style="margin-top: 10px; font-weight: 500;"></div>
                         <div class="status-indicator">
                             <div id="adStatus" class="status-dot"></div>

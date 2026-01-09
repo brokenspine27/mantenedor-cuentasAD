@@ -64,7 +64,7 @@ class EmpleadoNomina(models.Model):
         ('CONFLICTO', 'Conflicto de estados'),
     ]
     
-    rut = models.CharField(max_length=20, db_index=True, unique=True)
+    rut = models.CharField(max_length=20, db_index=True)
     nombre = models.CharField(max_length=200)
     estado_final = models.CharField(max_length=20, choices=ESTADO_CHOICES)
     registros_originales = models.IntegerField(default=1)  # Cuántas veces aparecía en Excel
